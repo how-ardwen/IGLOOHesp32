@@ -1,48 +1,46 @@
-/***************************************************************************
-  This is a library for the BME280 humidity, temperature & pressure sensor
+/*
+IGLOOH ESP32 proof of concept code
+Howard Wen
+July 2024
+*/
 
-  Designed specifically to work with the Adafruit BME280 Breakout
-  ----> http://www.adafruit.com/products/2650
-
-  These sensors use I2C or SPI to communicate, 2 or 4 pins are required
-  to interface. The device's I2C address is either 0x76 or 0x77.
-
-  Adafruit invests time and resources providing this open source code,
-  please support Adafruit andopen-source hardware by purchasing products
-  from Adafruit!
-
-  Written by Limor Fried & Kevin Townsend for Adafruit Industries.
-  BSD license, all text above must be included in any redistribution
-  See the LICENSE file for details.
- ***************************************************************************/
-
+// LIBRARIES
 #include <Wire.h>
 #include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
-#define BME_SCK 18
-#define BME_MISO 19
-#define BME_MOSI 23
+// CONSTANTS
+  // SPI pins
+#define MOSI 23
+#define MISO 19
+#define SCK 18
 #define BME_CS 5
+  // i2c pins
+#define SDA 21
+#define SCL 22
 
+// CONSTANTS
 #define SEALEVELPRESSURE_HPA (1013.25)
 
+// OBJECTS
 // Adafruit_BME280 bme; // I2C
-Adafruit_BME280 bme(BME_CS); // hardware SPI
 //Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
+Adafruit_BME280 bme(CS); // hardware SPI
 
+// VARIABLES
 unsigned long delayTime;
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     while(!Serial);    // time to get serial running
+    
+    // start BME 280
     Serial.println(F("BME280 test"));
-
-    unsigned status;
+    unsigned bme_status;
     
     // default settings
-    status = bme.begin();  
+    bme_status = bme.begin();  
     // You can also pass in a Wire library object like &Wire2
     // status = bme.begin(0x76, &Wire2)
     if (!status) {
@@ -56,6 +54,10 @@ void setup() {
     }
     
     Serial.println("-- Default Test --");
+
+    // start decibel meter
+    Serual.println(F("Decibel Meter test"));
+
     delayTime = 1000;
 
     Serial.println();
