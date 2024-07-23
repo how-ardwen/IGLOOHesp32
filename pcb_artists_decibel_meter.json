@@ -1,0 +1,372 @@
+{
+  "title": "PCB Artists Decibel Meter",
+  "image": null,
+  "mobileHide": false,
+  "mobileOrder": null,
+  "configuration": {
+    "description": "",
+    "widgets": {
+      "53359620-0950-6934-fa87-0b3724d928ab": {
+        "isSystemType": true,
+        "bundleAlias": "charts",
+        "typeAlias": "basic_timeseries",
+        "type": "timeseries",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 8,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b2bd68ec-4126-ee70-a83b-5e47309ab8ca",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "db",
+                  "type": "timeseries",
+                  "label": "Noise Level (dB)",
+                  "color": "#00ce03",
+                  "settings": {
+                    "hideDataByDefault": false,
+                    "disableDataHiding": false,
+                    "removeFromLegend": false,
+                    "excludeFromStacking": false,
+                    "showLines": false,
+                    "showPoints": true,
+                    "showPointsLineWidth": 5,
+                    "showPointsRadius": 3,
+                    "showPointShape": "circle",
+                    "pointShapeFormatter": "var size = radius * Math.sqrt(Math.PI) / 2;\nctx.moveTo(x - size, y - size);\nctx.lineTo(x + size, y + size);\nctx.moveTo(x - size, y + size);\nctx.lineTo(x + size, y - size);",
+                    "showSeparateAxis": false,
+                    "axisTitle": "Noise Level (dB)",
+                    "axisMin": 0,
+                    "axisMax": 120,
+                    "axisPosition": "left",
+                    "comparisonSettings": {
+                      "showValuesForComparison": true,
+                      "comparisonValuesLabel": "",
+                      "color": ""
+                    },
+                    "thresholds": []
+                  },
+                  "_hash": 0.516612818480493,
+                  "units": null,
+                  "decimals": null,
+                  "funcBody": null,
+                  "usePostProcessing": false,
+                  "postFuncBody": null,
+                  "aggregationType": null
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              },
+              "latestDataKeys": []
+            }
+          ],
+          "timewindow": {
+            "hideInterval": false,
+            "hideLastInterval": false,
+            "hideQuickInterval": false,
+            "hideAggregation": false,
+            "hideAggInterval": false,
+            "hideTimezone": false,
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 0,
+              "timewindowMs": 604800000,
+              "quickInterval": "CURRENT_DAY",
+              "interval": 1800000
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            },
+            "timezone": null
+          },
+          "showTitle": true,
+          "backgroundColor": "#fff",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "shadowSize": 4,
+            "fontColor": "#545454",
+            "fontSize": 10,
+            "xaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "yaxis": {
+              "showLabels": true,
+              "color": "#545454"
+            },
+            "grid": {
+              "color": "#545454",
+              "tickColor": "#DDDDDD",
+              "verticalLines": true,
+              "horizontalLines": true,
+              "outlineWidth": 1
+            },
+            "legend": {
+              "show": true,
+              "position": "nw",
+              "backgroundColor": "#f0f0f0",
+              "backgroundOpacity": 0.85,
+              "labelBoxBorderColor": "rgba(1, 1, 1, 0.45)"
+            },
+            "decimals": 1,
+            "stack": false,
+            "tooltipIndividual": false
+          },
+          "title": "New Timeseries Line Chart",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": false,
+          "displayTimewindow": true
+        },
+        "row": 0,
+        "col": 0,
+        "id": "53359620-0950-6934-fa87-0b3724d928ab"
+      },
+      "83a4ec12-18a2-0aa9-3e89-8a5e39c72670": {
+        "isSystemType": true,
+        "bundleAlias": "analogue_gauges",
+        "typeAlias": "radial_gauge_canvas_gauges",
+        "type": "latest",
+        "title": "New widget",
+        "image": null,
+        "description": null,
+        "sizeX": 6,
+        "sizeY": 5,
+        "config": {
+          "datasources": [
+            {
+              "type": "entity",
+              "name": null,
+              "entityAliasId": "b2bd68ec-4126-ee70-a83b-5e47309ab8ca",
+              "filterId": null,
+              "dataKeys": [
+                {
+                  "name": "db",
+                  "type": "timeseries",
+                  "label": "db",
+                  "color": "#2196f3",
+                  "settings": {},
+                  "_hash": 0.06474150426066483
+                }
+              ],
+              "alarmFilterConfig": {
+                "statusList": [
+                  "ACTIVE"
+                ]
+              }
+            }
+          ],
+          "timewindow": {
+            "displayValue": "",
+            "selectedTab": 0,
+            "realtime": {
+              "realtimeType": 1,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "quickInterval": "CURRENT_DAY"
+            },
+            "history": {
+              "historyType": 0,
+              "interval": 1000,
+              "timewindowMs": 60000,
+              "fixedTimewindow": {
+                "startTimeMs": 1683402262950,
+                "endTimeMs": 1683488662950
+              },
+              "quickInterval": "CURRENT_DAY"
+            },
+            "aggregation": {
+              "type": "AVG",
+              "limit": 2500
+            }
+          },
+          "showTitle": false,
+          "backgroundColor": "rgb(255, 255, 255)",
+          "color": "rgba(0, 0, 0, 0.87)",
+          "padding": "8px",
+          "settings": {
+            "startAngle": 45,
+            "ticksAngle": 270,
+            "needleCircleSize": 10,
+            "defaultColor": "#e65100",
+            "minValue": 0,
+            "maxValue": 100,
+            "colorMajorTicks": "#444",
+            "colorMinorTicks": "#666",
+            "numbersFont": {
+              "family": "Roboto",
+              "size": 18,
+              "style": "normal",
+              "weight": "500",
+              "color": "#616161"
+            },
+            "showUnitTitle": true,
+            "titleFont": {
+              "family": "Roboto",
+              "size": 24,
+              "style": "normal",
+              "weight": "500",
+              "color": "#888"
+            },
+            "unitsFont": {
+              "family": "Roboto",
+              "size": 22,
+              "style": "normal",
+              "weight": "500",
+              "color": "#616161"
+            },
+            "valueBox": true,
+            "valueInt": 3,
+            "valueFont": {
+              "family": "Segment7Standard",
+              "size": 36,
+              "style": "normal",
+              "weight": "normal",
+              "shadowColor": "rgba(0, 0, 0, 0.49)",
+              "color": "#444"
+            },
+            "colorValueBoxRect": "#888",
+            "colorValueBoxRectEnd": "#666",
+            "colorValueBoxBackground": "#babab2",
+            "colorValueBoxShadow": "rgba(0,0,0,1)",
+            "showBorder": true,
+            "colorPlate": "#fff",
+            "colorNeedleShadowUp": "rgba(2, 255, 255, 0)",
+            "colorNeedleShadowDown": "rgba(188,143,143,0.45)",
+            "highlightsWidth": 15,
+            "highlights": [],
+            "animation": true,
+            "animationDuration": 500,
+            "animationRule": "cycle"
+          },
+          "title": "New Radial gauge",
+          "dropShadow": true,
+          "enableFullscreen": true,
+          "titleStyle": {
+            "fontSize": "16px",
+            "fontWeight": 400
+          },
+          "useDashboardTimewindow": true,
+          "widgetStyle": {},
+          "widgetCss": "",
+          "pageSize": 1024,
+          "noDataDisplayMessage": "",
+          "showLegend": true,
+          "legendConfig": {
+            "direction": "column",
+            "position": "bottom",
+            "sortDataKeys": false,
+            "showMin": true,
+            "showMax": true,
+            "showAvg": false,
+            "showTotal": false,
+            "showLatest": true
+          }
+        },
+        "row": 0,
+        "col": 0,
+        "id": "83a4ec12-18a2-0aa9-3e89-8a5e39c72670"
+      }
+    },
+    "states": {
+      "default": {
+        "name": "PCB Artists Decibel Meter",
+        "root": true,
+        "layouts": {
+          "main": {
+            "widgets": {
+              "53359620-0950-6934-fa87-0b3724d928ab": {
+                "sizeX": 17,
+                "sizeY": 11,
+                "row": 0,
+                "col": 7
+              },
+              "83a4ec12-18a2-0aa9-3e89-8a5e39c72670": {
+                "sizeX": 7,
+                "sizeY": 11,
+                "row": 0,
+                "col": 0
+              }
+            },
+            "gridSettings": {
+              "backgroundColor": "#eeeeee",
+              "columns": 24,
+              "margin": 10,
+              "backgroundSizeMode": "100%",
+              "outerMargin": true
+            }
+          }
+        }
+      }
+    },
+    "entityAliases": {
+      "b2bd68ec-4126-ee70-a83b-5e47309ab8ca": {
+        "id": "b2bd68ec-4126-ee70-a83b-5e47309ab8ca",
+        "alias": "Decibel",
+        "filter": {
+          "type": "singleEntity",
+          "resolveMultiple": false,
+          "singleEntity": {
+            "entityType": "DEVICE",
+            "id": "d2c07f00-306e-11ed-baa6-316745deef35"
+          }
+        }
+      }
+    },
+    "filters": {},
+    "timewindow": {
+      "displayValue": "",
+      "hideInterval": false,
+      "hideAggregation": false,
+      "hideAggInterval": false,
+      "hideTimezone": false,
+      "selectedTab": 0,
+      "realtime": {
+        "realtimeType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "quickInterval": "CURRENT_DAY"
+      },
+      "history": {
+        "historyType": 0,
+        "interval": 1000,
+        "timewindowMs": 60000,
+        "fixedTimewindow": {
+          "startTimeMs": 1662664051032,
+          "endTimeMs": 1662750451032
+        },
+        "quickInterval": "CURRENT_DAY"
+      },
+      "aggregation": {
+        "type": "AVG",
+        "limit": 2500
+      }
+    },
+    "settings": {
+      "stateControllerId": "entity",
+      "showTitle": false,
+      "showDashboardsSelect": true,
+      "showEntitiesSelect": true,
+      "showDashboardTimewindow": true,
+      "showDashboardExport": true,
+      "toolbarAlwaysOpen": true
+    }
+  },
+  "externalId": null,
+  "name": "PCB Artists Decibel Meter"
+}
