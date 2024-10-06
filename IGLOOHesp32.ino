@@ -111,14 +111,16 @@ void setup() {
   Serial.printf("Unique ID = %02X %02X %02X %02X\r\n", id[3], id[2], id[1], id[0]);
 
 
-  delayTime = 1000;
+  delayTime = 2500;
   Serial.println();
 }
 
 
 void loop() {
-  printValues();
   uint8_t db, dbmin, dbmax;
+  float temperature, pressure, rh;
+
+  printValues(&temperature, &pressure, &rh);
   String DBMjson;
   // Read decibel, min and max
   db = dbmeter_readreg(&dbmeter, DBM_REG_DECIBEL);
@@ -128,7 +130,7 @@ void loop() {
     Serial.printf("dB reading = %03d \t [MIN: %03d \tMAX: %03d] \r\n", db, dbmin, dbmax);
 
     // Assemble JSON with dB SPL reading
-    DBMjson = "{\"db\": " + String(db) + "}";
+    DBMjson = "{\"db\": " + String(db) + ", \"temperature\": " + String(temperature) + "}";
     Serial.println("JSON: \n" + DBMjson);
 
     // Make a POST request with the data
@@ -159,26 +161,19 @@ void loop() {
 }
 
 
-void printValues() {
-  Serial.print("Temperature = ");
-  Serial.print(bme.readTemperature());
-  Serial.println(" °C");
+void printValues(float* temp_address, float* pressure_address, float* rh_address) {
+    *temp_address = bme.readTemperature();
+    Serial.printf("Temperature: %.2f °C\n", *temp_address);
 
-  Serial.print("Pressure = ");
+    *pressure_address = bme.readPressure();
+    Serial.printf("Pressure: %.2f hPa\n", *pressure_address);
 
-  Serial.print(bme.readPressure() / 100.0F);
-  Serial.println(" hPa");
+    *rh_address = bme.readHumidity();
+    Serial.printf("Relative Humidity: %.2f%\n", *rh_address);
 
-  Serial.print("Approx. Altitude = ");
-  Serial.print(bme.readAltitude(SEALEVELPRESSURE_HPA));
-  Serial.println(" m");
-
-  Serial.print("Humidity = ");
-  Serial.print(bme.readHumidity());
-  Serial.println(" %");
-
-  Serial.println();
+    Serial.println();
 }
+
 
 // Function to read a register from decibel meter
 uint8_t dbmeter_readreg(TwoWire *dev, uint8_t regaddr) {
