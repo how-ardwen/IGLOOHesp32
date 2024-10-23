@@ -3,36 +3,48 @@
 # Howard Wen
 # October 2024
 
-from machine import Pin, I2C, SPI
+from machine import Pin, I2C
 import network
 import urequests
 import time
-import iglooh_bme280
-import iglooh_dbm
+import utime
+import sys
 
 # CONSTANTS
-# SPI pins
-MOSI = 23
-MISO = 19
-SCK = 18
-BME_CS = 5
-# SDA and SCL pins for the decibel meter module + RTC
+# SDA and SCL pins for the RTC
 I2C_SDA = 21
 I2C_SCL = 22
+RTC_I2C_ADDR = 0x68  # Typical I2C address for DS3231
 # WIFI ssid and password
 WIFI_SSID = "BELL882"
 WIFI_PW = "37E26FF916A6"
+EPOCH_OFFSET = 946684800  # Offset for epoch starting from 2000-01-01 to 1970-01-01
 
-DEBUG = 1
+# setup I2C
+i2c = I2C(1, sda=Pin(I2C_SDA), scl=Pin(I2C_SCL), freq=100000)
 
-# setup I2C and SPI
-spi = SPI(1, baudrate=1000000, polarity=0, phase=0, sck=Pin(SCK), mosi=Pin(MOSI), miso=Pin(MISO))
-i2c = I2C(1, sda=Pin(I2C_SDA), scl=Pin(I2C_SCL), freq=10000)
+# Function to set up DS3231 RTC
+def rtc_setup():
+    # Check if RTC is connected
+    devices = i2c.scan()
+    if devices:
+        print(f"I2C devices found at addresses: {[hex(addr) for addr in devices]}")
+        if RTC_I2C_ADDR in devices:
+            print("RTC DS3231 found at address 0x68")
+        else:
+            print("RTC DS3231 not found at the expected address")
+    else:
+        print("No I2C devices found")
 
-# initialize bme and dbm objects
-bme = iglooh_bme280.BME280_SPI(bme_cs=BME_CS, spi=spi)
-dbm = iglooh_dbm.DBM_I2C(i2c=i2c)
-rtc = None
+# Function to set time on DS3231 RTC
+def set_rtc_time(year, month, day, weekday, hour, minute, second):
+    # Convert time to BCD format
+    def to_bcd(value):
+        return ((value // 10) << 4) | (value % 10)
+
+    time_data = bytearray([to_bcd(second), to_bcd(minute), to_bcd(hour), to_bcd(weekday), to_bcd(day), to_bcd(month), to_bcd(year % 100)])
+    i2c.writeto_mem(RTC_I2C_ADDR, 0x00, time_data)
+    print("RTC time set successfully")
 
 # WiFi Setup
 def connect_wifi():
@@ -43,82 +55,71 @@ def connect_wifi():
     while not wlan.isconnected():
         print(f"Connecting to WiFi network {WIFI_SSID} ...")
         time.sleep(5)
-    print("Connected!")
+    print("Connected to WiFi!")
 
-def bme280_setup():
-    # Setup the BME280 with default settings
-    print(f"id: {bme.read_reg(0xD0,1)} \nversion: {bme.read_reg(0xD1,1)}")
+# Function to get current time from an online API and set RTC
+def sync_time_with_ntp():
+    try:
+        response = urequests.get("http://worldtimeapi.org/api/timezone/Etc/UTC")
+        if response.status_code == 200:
+            json_data = response.json()
+            datetime_str = json_data["datetime"]
+            year = int(datetime_str[0:4])
+            month = int(datetime_str[5:7])
+            day = int(datetime_str[8:10])
+            hour = int(datetime_str[11:13])
+            minute = int(datetime_str[14:16])
+            second = int(datetime_str[17:19])
+            millisecond = int(datetime_str[20:23])  # Extract milliseconds
+            weekday = (utime.localtime(utime.mktime((year, month, day, hour, minute, second, 0, 0))))[6] + 1  # Calculate weekday (1=Monday, ..., 7=Sunday)
+            set_rtc_time(year, month, day, weekday, hour, minute, second)
+            print(f"RTC synchronized with NTP server. Milliseconds: {millisecond}")
+        else:
+            print("Failed to get time from server, status code:", response.status_code)
+        response.close()
+    except Exception as e:
+        print("Error syncing time with NTP server:", e)
 
-def dbm_setup():
-    # Setup the decibel meter
-    if dbm.set_configuration(125, 123):
-        # unique_id_str = ' '.join(f'{x:02X}' for x in dbm.reg_id)
-        print(f"Version: {dbm.version}, Unique ID: {dbm.reg_id}, Scratch: {dbm.scratch}")
-    else:
-        print("error setting up dbm")
+# Function to read current epoch time from RTC with milliseconds precision
+def read_epoch_time_with_millis():
+    data = i2c.readfrom_mem(RTC_I2C_ADDR, 0x00, 7)
+    def from_bcd(value):
+        return ((value >> 4) * 10) + (value & 0x0F)
 
+    second = from_bcd(data[0])
+    minute = from_bcd(data[1])
+    hour = from_bcd(data[2])
+    day = from_bcd(data[4])
+    month = from_bcd(data[5])
+    year = from_bcd(data[6]) + 2000
 
-# Setup sensors
-def setup():
-    # connect wifi
-    connect_wifi() if not DEBUG else print("debug mode")
+    # Manually convert the date and time to epoch time (taking into account the 2000 epoch offset)
+    try:
+        tm = (year, month, day, hour, minute, second, 0, 0, 0)
+        epoch_time = utime.mktime(tm) + EPOCH_OFFSET  # Adjust for epoch starting from 2000-01-01
+    except OverflowError:
+        # If the date is out of bounds for `mktime`, fallback to a default
+        epoch_time = 0
+        print("Error: Date is out of range for epoch conversion")
 
-    # set up BME280
-    print("BME280 test (Using SPI connection)")
-    bme280_setup()
-    print("BME280 setup complete")
-    
-    # set up I2C peripherals
-    i2c_sensors = i2c.scan()
-    print(f"Connected I2C sensors: {i2c_sensors}")
+    # Get current microseconds from the system timer
+    microseconds = utime.ticks_us() % 1000000
+    # Format the output as epoch_time.microseconds
+    epoch_time_with_microseconds = f"{epoch_time}.{microseconds:06d}"
+    return epoch_time_with_microseconds
 
-    # dbm sensor setup
-    if dbm.DBM_I2C_ADDR in i2c_sensors:
-        print("Setting up Sound Decibel Meter")
-        dbm_setup()
-        print("Sound Decibel Meter setup complete")
-    # RTC setup
-    # if rtc.ADDR in i2c_sensors:
-    #     print("setting up RTC")
-
-# Main loop
-def main_loop():
-    delay_time = 2.5  # seconds
-
-    while True:
-        # Read decibel values
-        db_array = dbm.get_db()
-        if db_array:
-            avg_db = db_array[0]
-            min_db = db_array[1]
-            max_db = db_array[2]
-            print(f"dB reading = {avg_db:03d} \t [MIN: {min_db:03d} \tMAX: {max_db:03d}]")
-
-            temperature, pressure, humidity = bme.read_compensated_data()
-            print(f"Temperature: {temperature:.2f} C, Pressure: {pressure:.2f} hPa, Humidity: {humidity:.2f}%")
-
-            # Assemble JSON with dB SPL reading
-            DBMjson = f'{{"db": {avg_db}, "temperature": {temperature}}}'
-            print("JSON: \n" + DBMjson)
-
-            # Make a POST request with the data
-            if not DEBUG:
-                if network.WLAN(network.STA_IF).isconnected():
-                    try:
-                        response = urequests.post("https://demo.thingsboard.io/api/v1/MpvD4JYOpDvbKIJLvFif/telemetry", 
-                                                data=DBMjson, 
-                                                headers={'Content-Type': 'application/json'})
-                        print(response.status_code)
-                        print(response.text)
-                        response.close()
-                    except Exception as e:
-                        print(f"Error on sending POST: {e}")
-                else:
-                    print("Something wrong with WiFi?")
-            
-        time.sleep(delay_time)
-
-# Run setup and main loop
+# Run RTC setup, connect to WiFi, sync with NTP and print time in epoch with microseconds every 30 seconds
 if __name__ == "__main__":
-    setup()
-    main_loop()
+    rtc_setup()
+    user_input = False
+    if user_input:
+        connect_wifi()
+        sync_time_with_ntp()
+    else:
+        print("Skipping time update. Proceeding to print epoch time.")
+    
+    while True:
+        epoch_time_with_microseconds = read_epoch_time_with_millis()
+        print(f"Current epoch time: {epoch_time_with_microseconds}")
+        time.sleep(30)
+
