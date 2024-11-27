@@ -53,8 +53,8 @@ uos.mount(vfs, "/sd")
 
 file_path= "/sd/runtime_logs.txt"
 
-WIFI_SSID = "Cheapside"
-WIFI_PW = "DA3DDRogers"
+WIFI_SSID = "---------"
+WIFI_PW = "----------"
 
 # WiFi Setup
 def connect_wifi():
