@@ -1,15 +1,16 @@
 # IGLOOH ESP32 proof of concept code
 # Converted to MicroPython
-# Howard Wen
-# October 2024
+# Adam Dunn
+# November 2024
 
+from machine import Pin, I2C
 import machine
 import sdcard
 import uos
 import time
 import dht
 from iglooh_bme280 import BME280_SPI
-import gc
+from iglooh_rtc import RTC_I2C
 
 # CONSTANTS
 # SPI pins
@@ -20,14 +21,20 @@ SPI_SCK = 18
 SD_CS = 5
 BME_CS= 15
 
+
 DEBUG = 0
 
 # Assign chip select (CS) pin (and start it high)
 cs = machine.Pin(SD_CS, machine.Pin.OUT)
  
+ #initialize i2c
+i2c = I2C(0, scl=Pin(22), sda=Pin(21), freq=100000)
+#initialize i2c instance from iglooh_rtc class
+rtc = RTC_I2C(i2c)    
+ 
 # Intialize SPI peripheral (start with 1 MHz) -> 400 kHz
 spi = machine.SPI(1,
-                  baudrate=SPI_BAUDRATE,
+                  baudrate=4000000,
                   polarity=0,
                   phase=0,
                   bits=8,
@@ -44,46 +51,49 @@ bme280 = BME280_SPI(bme_cs=BME_CS, spi=spi)
 vfs = uos.VfsFat(sd)
 uos.mount(vfs, "/sd")
 
+file_path= "/sd/runtime_logs.txt"
 
-#define batch size
-BATCH_SIZE = 10
-log_batch = []
+WIFI_SSID = "Cheapside"
+WIFI_PW = "DA3DDRogers"
 
-filepath= "/sd/runtime_logs.txt"
-      
-# Function to get the current date and time
-def get_date_time():
-    rtc = machine.RTC()
-    date = rtc.datetime()
-    date_str = f"{date[0]}-{date[1]:02d}-{date[2]:02d}"
-    time_str = f"{date[4]:02d}:{date[5]:02d}:{date[6]:02d}"
-    return date_str, time_str
+# WiFi Setup
+def connect_wifi():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(WIFI_SSID, WIFI_PW)
+    
+    while not wlan.isconnected():
+        print(f"Connecting to WiFi network {WIFI_SSID} ...")
+        time.sleep(5)
+    print("Connected to WiFi!")
+    
+#initialize rtc date and time
+#rtc._set_rtc_time(2024, 11, 26, 4, 12, 49, 0)
 
+#open file only once to avoid repeated open/close delays
+dataFile = open(file_path, "a")
 
 record = 0
-
-while True:
-    #get data and create log entry
-    date_str, time_str = get_date_time()
-    
-    #get BME readings
-    try:
-        temperature, pressure, humidity = bme280.read_compensated_data()
-        log_entry = (f"{record},{date_str},{time_str},{temperature:.2f}C,{pressure:.2f}hPa,{humidity:.2f}%\n")
-        log_batch.append(log_entry)
-        
-        #write data to card when batch size is met   
-        if len(log_batch) >= BATCH_SIZE:
-            with open(filepath, "a") as file:
-                print("".join(log_batch))
-                file.write("".join(log_batch))
-            log_batch.clear()
+try:
+    while True:
+        try:        
+            #get time and environment data
+            temperature, pressure, humidity = bme280.read_compensated_data()
+            current_time = rtc._read_epoch_time_with_millis()
             
-        record += 1
+            #record log entry
+            log_entry = (f"{record}, {current_time},{temperature:.2f}C,{pressure:.2f}hPa,{humidity:.2f}%\n")
+            
+            print(log_entry)
+            dataFile.write(log_entry)
+            record += 1
 
-
-    except Exception as e:
-        print("Error reading BME280 or writing to SD card:", e)
+        except Exception as e:
+            print("Error reading BME280 or writing to SD card:", e)
     
     
-    time.sleep(0.01)
+    time.sleep(0.001)
+
+finally:
+    # Ensure the file is closed on exit
+    dataFile.close()    
