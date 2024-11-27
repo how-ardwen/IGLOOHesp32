@@ -51,21 +51,21 @@ bme280 = BME280_SPI(bme_cs=BME_CS, spi=spi)
 vfs = uos.VfsFat(sd)
 uos.mount(vfs, "/sd")
 
-file_path= "/sd/runtime_logs.txt"
+file_path= "/sd/runtime_logs.csv"
 
 WIFI_SSID = "---------"
 WIFI_PW = "----------"
 
 # WiFi Setup
-def connect_wifi():
-    wlan = network.WLAN(network.STA_IF)
-    wlan.active(True)
-    wlan.connect(WIFI_SSID, WIFI_PW)
-    
-    while not wlan.isconnected():
-        print(f"Connecting to WiFi network {WIFI_SSID} ...")
-        time.sleep(5)
-    print("Connected to WiFi!")
+# def connect_wifi():
+#     wlan = network.WLAN(network.STA_IF)
+#     wlan.active(True)
+#     wlan.connect(WIFI_SSID, WIFI_PW)
+#     
+#     while not wlan.isconnected():
+#         print(f"Connecting to WiFi network {WIFI_SSID} ...")
+#         time.sleep(5)
+#     print("Connected to WiFi!")
     
 #initialize rtc date and time
 #rtc._set_rtc_time(2024, 11, 26, 4, 12, 49, 0)
@@ -78,11 +78,11 @@ try:
     while True:
         try:        
             #get time and environment data
-            temperature, pressure, humidity = bme280.read_compensated_data()
+            raw_temperature, raw_pressure, raw_humidity = bme280.read_raw_data()
             current_time = rtc._read_epoch_time_with_millis()
             
             #record log entry
-            log_entry = (f"{record}, {current_time},{temperature:.2f}C,{pressure:.2f}hPa,{humidity:.2f}%\n")
+            log_entry = f"{record},{current_time},{raw_temperature},{raw_pressure},{raw_humidity}\n"
             
             print(log_entry)
             dataFile.write(log_entry)
